@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+downloads/
+videos.txt
+config.toml
+cookies*.txt

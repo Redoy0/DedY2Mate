@@ -1,0 +1,26 @@
+# Copy to config.toml (auto-loaded from the current directory) or pass --config FILE.
+# Command-line flags override these values.
+
+input   = "videos.txt"
+output  = "downloads"
+
+# "best", "2160", "1440", "1080", "720", "480", "360"  (max resolution)
+quality = "best"
+
+# "any"  = highest quality; MP4 may contain AV1/VP9 video
+# "h264" = most compatible MP4 for websites (H.264 + AAC, usually <= 1080p)
+codec   = "any"
+
+# yt-dlp output template. Keeping [%(id)s] prevents clashes between same-titled videos.
+filename = "%(title)s [%(id)s].%(ext)s"
+safe_filenames = false        # true = ASCII only, no spaces (nicer in web URLs)
+
+retries = 3                   # attempts per video on network / rate-limit errors
+sleep   = 2.0                 # seconds between videos (be gentle with YouTube)
+# rate_limit = "5M"           # cap download speed
+
+# Only needed for age-restricted / private videos you are allowed to view:
+# cookies = "cookies.txt"
+# cookies_from_browser = "firefox"
+
+# ffmpeg = "/usr/bin/ffmpeg"  # default: auto-detect

@@ -1,0 +1,7 @@
+# yt-dlp[default] pulls yt-dlp-ejs (YouTube JS challenge solver), certifi, websockets, ...
+# The setup scripts also try `pip install deno` (JS runtime YouTube needs) as an optional step,
+# so Node.js is not required. It is optional because not every platform has a deno wheel.
+yt-dlp[default]>=2026.10.26
+rich>=13.7
+# Bundled static FFmpeg, used only when no system ffmpeg is installed.
+imageio-ffmpeg>=0.5

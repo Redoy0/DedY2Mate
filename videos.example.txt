@@ -1,0 +1,6 @@
+# One YouTube URL per line. Blank lines and lines starting with '#' are ignored.
+# Supported forms: watch?v=, youtu.be/, /shorts/, /embed/, /live/ (public and unlisted).
+# Duplicates (same video ID in any URL form) are downloaded only once.
+https://www.youtube.com/watch?v=VIDEO_ID_1
+https://youtu.be/VIDEO_ID_2
+https://www.youtube.com/watch?v=VIDEO_ID_3
