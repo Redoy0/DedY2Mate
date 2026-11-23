@@ -5,3 +5,7 @@ yt-dlp[default]>=2026.10.26
 rich>=13.7
 # Bundled static FFmpeg, used only when no system ffmpeg is installed.
 imageio-ffmpeg>=0.5
+# Google Drive destination (OAuth sign-in + authorized HTTP session)
+google-auth>=2.30
+google-auth-oauthlib>=1.2
+requests>=2.32

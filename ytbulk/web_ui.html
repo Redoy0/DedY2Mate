@@ -7,14 +7,14 @@
 <style>
 :root{
   --bg:#f5f6f8;--card:#fff;--fg:#1c2230;--muted:#667085;--line:#e2e5ea;--track:#eaedf2;
-  --accent:#2563eb;--accent-fg:#fff;
-  --ok:#15803d;--ok-bg:#e7f6ec;--warn:#a15c07;--warn-bg:#fdf3e1;--bad:#b42318;--bad-bg:#fdecea;
+  --accent:#2563eb;--accent-fg:#fff;--drive:#0b8a5f;
+  --ok:#15803d;--ok-bg:#e7f6ec;--warn:#a15c07;--warn-bg:#fdf3e1;--bad:#b42318;--bad-bg:#fdecea;--info-bg:#eef4ff;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0e1117;--card:#161a22;--fg:#e6e9ef;--muted:#98a2b3;--line:#2a303b;--track:#232934;
-  --accent:#4f8cff;--accent-fg:#fff;
-  --ok:#4ade80;--ok-bg:#11281b;--warn:#fbbf24;--warn-bg:#2a2210;--bad:#f87171;--bad-bg:#2c1414;
+  --accent:#4f8cff;--accent-fg:#fff;--drive:#34d399;
+  --ok:#4ade80;--ok-bg:#11281b;--warn:#fbbf24;--warn-bg:#2a2210;--bad:#f87171;--bad-bg:#2c1414;--info-bg:#15213a;
 }}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif}
@@ -23,38 +23,61 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;pa
 h1{margin:0;font-size:24px;letter-spacing:-.01em}
 .sub{margin:2px 0 0;color:var(--muted)}
 h2{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+h3{margin:0 0 8px;font-size:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
 .card>h2{margin-bottom:14px}
-.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-size:12px;font-weight:700}
-.drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:28px 16px;border:2px dashed var(--line);border-radius:10px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-size:12px;font-weight:700;flex:none}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 16px;border:2px dashed var(--line);border-radius:10px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
 .drop span{color:var(--muted);font-size:13px}
 .drop:hover,.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .drop.disabled{pointer-events:none;opacity:.5}
-input[type=text],input[type=number],select,textarea{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;width:100%}
+input[type=text],input[type=number],select,textarea{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;width:100%;min-width:0}
 input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:0;border-color:var(--accent)}
 textarea{min-height:110px;margin-top:12px;font:13px/1.55 var(--mono);resize:vertical}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
-.grid label>input,.grid label>select{color:var(--fg);font-size:14px}
-.grid .wide{grid-column:1/-1}
-.grid.two{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px}
-label.check{flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-size:14px}
-label.check input{width:auto}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);margin-top:14px}
+.field>input,.field>select,.field .inrow input{color:var(--fg);font-size:14px}
+.inrow{display:flex;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid .field{margin-top:0}
+label.check{display:flex;flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-size:14px;margin-top:12px}
+label.check input{width:auto;margin:0}
 details>summary{cursor:pointer;color:var(--muted);font-size:13px;user-select:none}
-details.adv{margin-top:14px}
+details.adv{margin-top:16px}
 details.adv .grid{margin-top:12px}
-.btn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.small{padding:6px 12px;font-size:13px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.link{border:0;background:none;color:var(--accent);padding:0;font-weight:500;font-size:13px}
 .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #msg{font-size:14px}
-.okc{color:var(--ok)}.badc{color:var(--bad)}.warnc{color:var(--warn)}
+.okc{color:var(--ok)}.badc{color:var(--bad)}.warnc{color:var(--warn)}.drivec{color:var(--drive)}
+/* destination switch */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:12px 14px;font:inherit;cursor:pointer}
+.seg button b{font-size:15px}
+.seg button span{font-size:12.5px;color:var(--muted)}
+.seg button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.seg button:disabled{cursor:not-allowed;opacity:.6}
+.panel{border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:14px;background:var(--bg)}
+.panel .field:first-child{margin-top:0}
+.acct{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.warn{background:var(--warn)}
+.setup ol{margin:8px 0 10px;padding-left:20px;font-size:13.5px}
+.setup li{margin:3px 0}
+.setup code{font-family:var(--mono);font-size:12.5px;background:var(--track);padding:1px 5px;border-radius:4px}
+.note{font-size:12.5px;color:var(--muted);background:var(--info-bg);border-radius:8px;padding:10px 12px;margin-top:12px}
+.note ul{margin:4px 0 0;padding-left:18px}
+.folderinfo{font-size:13px;margin-top:4px;min-height:1.2em}
+.divider{height:1px;background:var(--line);margin:14px 0}
+/* progress */
 .prog{margin-top:16px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0}
 .bar{height:10px;background:var(--track);border-radius:99px;overflow:hidden;margin:6px 0}
 .bar>div{height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .35s}
 .bar.green>div{background:var(--ok)}
+.bar.drive>div{background:var(--drive)}
 .bar.indet>div{width:30%!important;animation:indet 1.2s ease-in-out infinite}
 @keyframes indet{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
 .counts{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
@@ -64,6 +87,7 @@ details.adv .grid{margin-top:12px}
 .chip.ok,.pill.ok,.badge.ok{background:var(--ok-bg);color:var(--ok)}
 .chip.warn,.pill.warn,.badge.warn{background:var(--warn-bg);color:var(--warn)}
 .chip.bad,.pill.bad,.badge.bad{background:var(--bad-bg);color:var(--bad)}
+.badge.drive{background:color-mix(in srgb,var(--drive) 15%,transparent);color:var(--drive)}
 .issues{margin-top:10px;font-size:13px}
 .issues ul{margin:6px 0 0;padding-left:18px}
 .issues code{word-break:break-all}
@@ -85,21 +109,47 @@ th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:8px
 td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
 td a{word-break:break-all;font-size:12.5px}
-.badge{font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap;background:var(--track);color:var(--muted)}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap;background:var(--track);color:var(--muted);margin:0 4px 4px 0}
+.ftag{font-size:11.5px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 6px;margin-right:6px;white-space:nowrap}
 .ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .path{font-family:var(--mono);font-size:12px;color:var(--muted);word-break:break-all}
 .muted{color:var(--muted)}.small{font-size:12.5px}.hidden{display:none!important}
 .empty{text-align:center;padding:22px 8px}
 a{color:var(--accent)}
+/* folder picker */
+dialog#picker{border:1px solid var(--line);border-radius:14px;padding:0;width:min(640px,calc(100vw - 32px));max-height:min(640px,calc(100vh - 32px));background:var(--card);color:var(--fg);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog#picker::backdrop{background:rgba(15,20,30,.45)}
+.pk{display:flex;flex-direction:column;max-height:min(640px,calc(100vh - 32px))}
+.pk-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.pk-head h3{margin:0;font-size:15px}
+.pk-x{border:0;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px}
+.pk-places{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 0}
+.pk-places button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:99px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer}
+.pk-places button.on{border-color:var(--accent);color:var(--accent)}
+.pk-crumbs{display:flex;align-items:center;gap:2px;flex-wrap:wrap;padding:10px 16px;font-size:13px}
+.pk-crumbs button{border:0;background:none;color:var(--accent);font:inherit;cursor:pointer;padding:2px 4px;border-radius:4px}
+.pk-crumbs button:last-child{color:var(--fg);font-weight:600}
+.pk-crumbs span{color:var(--muted)}
+.pk-list{flex:1;overflow:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);min-height:220px}
+.pk-list button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--fg);font:inherit;font-size:14px;padding:9px 16px;cursor:pointer}
+.pk-list button:hover,.pk-list button:focus-visible{background:color-mix(in srgb,var(--accent) 8%,transparent);outline:none}
+.pk-list .ico{width:20px;text-align:center;flex:none}
+.pk-list .go{margin-left:auto;color:var(--muted)}
+.pk-empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:13px}
+.pk-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px}
+.pk-foot .sel{flex:1 1 100%;font-size:12.5px;color:var(--muted);word-break:break-all}
+.pk-foot .sel b{color:var(--fg)}
+.pk-new{display:flex;gap:6px;flex:1}
+.pk-new input{flex:1}
+.spacer{flex:1}
 @media (max-width:640px){
   header{flex-direction:column;align-items:flex-start}
-  .grid.two{grid-template-columns:1fr}
+  .grid,.seg{grid-template-columns:1fr}
   thead{display:none}
-  tbody tr{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  tbody tr{display:grid;grid-template-columns:1fr;gap:4px;padding:12px 0;border-bottom:1px solid var(--line)}
   tbody tr:last-child{border-bottom:0}
   td{padding:0;border:0}
   td:first-child{display:none}
-  td:nth-child(4),td.empty{grid-column:1/-1}
   .checks li{grid-template-columns:44px 1fr}.checks li span:last-child{grid-column:1/-1}
 }
 </style>
@@ -109,7 +159,7 @@ a{color:var(--accent)}
   <header>
     <div>
       <h1>ytbulk</h1>
-      <p class="sub">Download your own YouTube videos (public or unlisted) as MP4 — in bulk.</p>
+      <p class="sub">Download your own YouTube videos (public or unlisted) as MP4 — to this computer or straight into Google Drive.</p>
     </div>
     <button id="envPill" class="pill" title="Show environment checks">Checking…</button>
   </header>
@@ -119,61 +169,124 @@ a{color:var(--accent)}
     <ul id="envList" class="checks"></ul>
   </section>
 
+  <!-- 1. URLs -->
   <section class="card">
     <h2><span class="step">1</span> URL list</h2>
     <label id="drop" class="drop" for="file">
       <input id="file" type="file" accept=".txt,text/plain" hidden>
       <strong>Drop your videos.txt here</strong>
-      <span>or click to choose a file · one YouTube URL per line</span>
+      <span>or click to choose a file · one YouTube URL per line · a plain-text line like “Module 3” starts a new folder</span>
     </label>
-    <textarea id="urls" spellcheck="false" placeholder="…or paste URLs here, one per line&#10;https://www.youtube.com/watch?v=VIDEO_ID&#10;https://youtu.be/VIDEO_ID"></textarea>
-    <div class="row small muted"><span id="fileInfo"></span></div>
+    <textarea id="urls" spellcheck="false" placeholder="…or paste URLs here&#10;Module 1&#10;https://youtu.be/VIDEO_ID&#10;https://www.youtube.com/watch?v=VIDEO_ID"></textarea>
+    <div class="small muted" id="fileInfo"></div>
     <div id="parseInfo" class="chips"></div>
     <details id="parseIssues" class="issues hidden"><summary>Show skipped lines</summary><ul></ul></details>
   </section>
 
+  <!-- 2. Destination + settings -->
   <section class="card">
-    <h2><span class="step">2</span> Settings</h2>
-    <div class="grid">
-      <label class="wide">Save videos to (folder on this computer)<input id="output" type="text" autocomplete="off"></label>
+    <h2><span class="step">2</span> Where to save</h2>
+    <div class="seg" id="destSeg" role="radiogroup" aria-label="Destination">
+      <button type="button" data-dest="local" role="radio"><b>💻 This computer</b><span>Save MP4 files into a folder here</span></button>
+      <button type="button" data-dest="drive" role="radio"><b>☁️ Google Drive folder</b><span>Download, then upload into a Drive folder link</span></button>
     </div>
-    <div class="grid two">
-      <label>Max quality<select id="quality"></select></label>
-      <label>Format
+
+    <!-- Drive panel -->
+    <div id="drivePanel" class="hidden">
+      <div class="panel">
+        <h3>Google account</h3>
+        <div id="driveSetup" class="setup hidden">
+          <div class="small">One-time setup (about 5 minutes). Google throttles shared upload apps — that's what made the earlier upload crawl.
+            ytbulk uses <b>your own free Google app key</b>, so the upload quota is yours alone.</div>
+          <ol>
+            <li>Open <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener">Google Cloud → New project</a>, name it <code>ytbulk</code>, click <b>Create</b>.</li>
+            <li>Enable the <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" rel="noopener">Google Drive API</a> for that project.</li>
+            <li>Open <a href="https://console.cloud.google.com/auth/overview" target="_blank" rel="noopener">Google Auth Platform</a> → <b>Get started</b>: app name <code>ytbulk</code>, your email, audience <b>External</b>, finish.</li>
+            <li>Under <a href="https://console.cloud.google.com/auth/audience" target="_blank" rel="noopener">Audience</a> click <b>Publish app</b> (or add your Gmail under <i>Test users</i> — test sign-ins expire after 7 days).</li>
+            <li>Under <a href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener">Clients</a> → <b>Create client</b> → type <b>Desktop app</b> → <b>Create</b> → <b>Download JSON</b>.</li>
+            <li>Choose that file here:</li>
+          </ol>
+          <div class="actions">
+            <label class="btn small" for="clientFile">Choose client JSON file…</label>
+            <input id="clientFile" type="file" accept=".json,application/json" hidden>
+            <span id="clientMsg" class="small"></span>
+          </div>
+        </div>
+        <div id="driveAcct" class="acct">
+          <span id="acctText" class="small"><span class="dot"></span>Checking…</span>
+          <span class="actions">
+            <button id="connectBtn" class="btn small primary hidden">Connect Google account</button>
+            <button id="disconnectBtn" class="btn small hidden">Disconnect</button>
+            <button id="newClientBtn" class="btn link hidden">Use a different client file</button>
+          </span>
+        </div>
+
+        <div class="divider"></div>
+        <label class="field">Drive folder — browse your Drive, or paste a folder link
+          <span class="inrow"><input id="driveUrl" type="text" autocomplete="off" placeholder="https://drive.google.com/drive/folders/…"><button id="browseDrive" class="btn small primary" type="button">Browse Drive…</button></span>
+        </label>
+        <div id="folderInfo" class="folderinfo muted"></div>
+
+        <div class="note">
+          <b>How Drive limits are handled</b>
+          <ul>
+            <li>Uploads run alongside downloads, one at a time, resume after network drops and back off when Google says “slow down”.</li>
+            <li>Every upload is checksum-verified. Videos already in the Drive folder are skipped — re-running never makes duplicates.</li>
+            <li>Google allows about 750 GB of uploads per account per day; if reached, start again tomorrow and it continues where it stopped.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <label class="field" id="outputField"><span id="outputLabel">Save videos to (folder on this computer)</span>
+      <span class="inrow"><input id="output" type="text" autocomplete="off"><button id="browseLocal" class="btn small primary" type="button">Browse…</button><button id="openFolder" class="btn small" type="button" title="Open this folder in your file manager">Open</button></span>
+    </label>
+    <label class="check hidden" id="deleteLocalRow"><input id="deleteLocal" type="checkbox"> Delete each local copy after it is verified on Drive (saves disk space)</label>
+
+    <div class="grid" style="margin-top:14px">
+      <label class="field">Max quality<select id="quality"></select></label>
+      <label class="field">Format
         <select id="codec">
-          <option value="any">Best quality (MP4, may be AV1/VP9)</option>
           <option value="h264">Web-compatible (H.264 MP4, plays everywhere)</option>
+          <option value="any">Best quality (MP4, may be AV1/VP9)</option>
         </select>
       </label>
     </div>
     <details class="adv">
       <summary>Advanced</summary>
+      <label class="check"><input id="safe" type="checkbox"> ASCII-only filenames without spaces (nicer in web URLs)</label>
       <div class="grid">
-        <label class="check wide"><input id="safe" type="checkbox"> ASCII-only filenames without spaces (nicer in web URLs)</label>
-        <label>Pause between videos (seconds)<input id="sleep" type="number" min="0" step="0.5"></label>
-        <label>Cookies from browser<select id="cfb">
+        <label class="field">Pause between videos (seconds)<input id="sleep" type="number" min="0" step="0.5"></label>
+        <label class="field">Cookies from browser<select id="cfb">
           <option value="">None (not needed for unlisted)</option>
           <option>firefox</option><option>chrome</option><option>chromium</option><option>brave</option><option>edge</option>
         </select></label>
-        <label class="wide">Cookies file — only for age-restricted / private videos you can access<input id="cookies" type="text" placeholder="/path/to/cookies.txt" autocomplete="off"></label>
       </div>
+      <label class="field">Cookies file — only for age-restricted / private videos you can access<input id="cookies" type="text" placeholder="/path/to/cookies.txt" autocomplete="off"></label>
     </details>
   </section>
 
+  <!-- 3. Run -->
   <section class="card">
-    <h2><span class="step">3</span> Download</h2>
+    <h2><span class="step">3</span> Run</h2>
     <div class="actions">
       <button id="start" class="btn primary" disabled>Start download</button>
       <button id="stop" class="btn" disabled>Stop</button>
       <span id="msg" class="muted"></span>
     </div>
+    <div id="startHint" class="small muted" style="margin-top:6px"></div>
     <div class="prog">
-      <div class="row"><strong>Overall</strong><span id="ovText" class="muted small">–</span></div>
+      <div class="row"><strong>Downloaded</strong><span id="ovText" class="muted small">–</span></div>
       <div id="ovBarWrap" class="bar"><div id="ovBar"></div></div>
+      <div id="upOverall" class="hidden">
+        <div class="row"><strong class="drivec">Uploaded to Drive</strong><span id="upText" class="muted small">–</span></div>
+        <div id="upBarWrap" class="bar drive"><div id="upBar"></div></div>
+      </div>
       <div class="counts">
         <span><b id="cOk" class="okc">0</b> downloaded</span>
         <span><b id="cSkip">0</b> skipped</span>
         <span><b id="cBad" class="badc">0</b> failed</span>
+        <span id="cDrive" class="hidden"><b id="cUp" class="drivec">0</b> uploaded · <b id="cAlready">0</b> already on Drive · <b id="cUpBad" class="badc">0</b> upload failed</span>
         <span id="elapsed"></span>
       </div>
     </div>
@@ -182,30 +295,55 @@ a{color:var(--accent)}
       <div id="curBarWrap" class="bar"><div id="curBar"></div></div>
       <div class="counts"><span id="curBytes"></span><span id="curSpeed"></span><span id="curEta"></span></div>
     </div>
+    <div id="up" class="prog hidden">
+      <div class="row"><strong id="upTitle" class="ellipsis"></strong><span class="tag drivec">☁ uploading</span></div>
+      <div id="upCurWrap" class="bar drive"><div id="upCurBar"></div></div>
+      <div class="counts"><span id="upBytes"></span><span id="upSpeed"></span><span id="upEta"></span></div>
+    </div>
     <div id="summary" class="summary hidden"></div>
   </section>
 
+  <!-- 4. Results -->
   <section class="card">
     <div class="row"><h2>Results</h2>
       <div id="tabs" class="tabs">
-        <button data-f="all" class="on">All</button><button data-f="downloaded">Downloaded</button>
-        <button data-f="failed">Failed</button><button data-f="skipped">Skipped</button>
+        <button data-f="all" class="on">All</button><button data-f="done">Done</button>
+        <button data-f="problems">Problems</button><button data-f="skipped">Skipped</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Status</th><th>Video</th><th>Details</th></tr></thead>
+        <thead><tr><th>#</th><th>Video</th><th>Status</th><th>Details</th></tr></thead>
         <tbody id="rows"><tr><td colspan="4" class="muted empty">Nothing yet.</td></tr></tbody>
       </table>
     </div>
   </section>
 </div>
 
+<dialog id="picker" aria-labelledby="pkTitle">
+  <div class="pk">
+    <div class="pk-head"><h3 id="pkTitle">Choose a folder</h3><button class="pk-x" id="pkClose" aria-label="Close">×</button></div>
+    <div class="pk-places" id="pkPlaces"></div>
+    <div class="pk-crumbs" id="pkCrumbs"></div>
+    <div class="pk-list" id="pkList"></div>
+    <div class="pk-foot">
+      <div class="sel" id="pkSel"></div>
+      <div class="pk-new hidden" id="pkNewRow"><input id="pkNewName" type="text" placeholder="New folder name" autocomplete="off"><button class="btn small" id="pkNewOk">Create</button><button class="btn small" id="pkNewCancel">Cancel</button></div>
+      <button class="btn small" id="pkNew">＋ New folder</button>
+      <span class="spacer"></span>
+      <button class="btn small" id="pkCancel">Cancel</button>
+      <button class="btn small primary" id="pkSelect">Select this folder</button>
+    </div>
+  </div>
+</dialog>
+
 <script>
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtBytes = (n) => { if (!n) return '–'; const u = ['B','KiB','MiB','GiB','TiB']; let i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (i ? n.toFixed(1) : n) + ' ' + u[i]; };
-const fmtTime = (s) => { if (s == null) return '–'; s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+const fmtTime = (s) => { if (s == null || !isFinite(s)) return '–'; s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+const store = { get() { try { return JSON.parse(localStorage.getItem('ytbulk.settings') || '{}'); } catch (_) { return {}; } },
+                set(v) { try { localStorage.setItem('ytbulk.settings', JSON.stringify(v)); } catch (_) {} } };
 
 async function api(path, body) {
   const opt = body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
@@ -235,12 +373,94 @@ async function loadEnv() {
 }
 $('#envPill').onclick = () => $('#envBox').classList.toggle('hidden');
 
+/* ---------- settings (defaults from server, then the viewer's last choices) ---------- */
+let dest = 'local';
 async function loadDefaults() {
   const d = await api('/api/defaults');
-  $('#output').value = d.output;
+  const saved = store.get();
   $('#quality').innerHTML = d.qualities.map((q) => `<option value="${q}">${q === 'best' ? 'Best available' : q + 'p'}</option>`).join('');
-  $('#quality').value = d.quality; $('#codec').value = d.codec; $('#safe').checked = d.safe_filenames;
-  $('#sleep').value = d.sleep; $('#cookies').value = d.cookies; $('#cfb').value = d.cookies_from_browser;
+  $('#output').value = saved.output || d.output;
+  $('#quality').value = saved.quality || d.quality;
+  $('#codec').value = saved.codec || d.codec;
+  $('#safe').checked = saved.safe ?? d.safe_filenames;
+  $('#sleep').value = saved.sleep ?? d.sleep;
+  $('#cookies').value = d.cookies; $('#cfb').value = d.cookies_from_browser;
+  $('#driveUrl').value = saved.driveUrl || d.drive_folder;
+  $('#deleteLocal').checked = saved.deleteLocal ?? d.delete_local;
+  setDest(location.hash.includes('drive') ? 'drive' : (saved.dest || d.destination), false);
+}
+function saveSettings() {
+  store.set({ dest, output: $('#output').value, quality: $('#quality').value, codec: $('#codec').value,
+              safe: $('#safe').checked, sleep: $('#sleep').value, driveUrl: $('#driveUrl').value, deleteLocal: $('#deleteLocal').checked });
+}
+['output', 'quality', 'codec', 'safe', 'sleep', 'driveUrl', 'deleteLocal'].forEach((id) => $('#' + id).addEventListener('change', saveSettings));
+
+function setDest(d, save = true) {
+  dest = d;
+  for (const b of $('#destSeg').children) { const on = b.dataset.dest === d; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }
+  $('#drivePanel').classList.toggle('hidden', d !== 'drive');
+  $('#deleteLocalRow').classList.toggle('hidden', d !== 'drive');
+  $('#outputLabel').textContent = d === 'drive' ? 'Download here first (working folder on this computer)' : 'Save videos to (folder on this computer)';
+  $('#start').textContent = d === 'drive' ? 'Download & upload to Drive' : 'Start download';
+  if (save) saveSettings();
+  if (d === 'drive') loadDrive();
+  updateControls();
+}
+$('#destSeg').onclick = (e) => { const b = e.target.closest('button'); if (b && !running) setDest(b.dataset.dest); };
+$('#openFolder').onclick = async () => { try { await api('/api/open-folder', { path: $('#output').value }); } catch (e) { setMsg(e.message, 'bad'); } };
+
+/* ---------- Google Drive ---------- */
+let drive = { connected: false }, folder = null, drivePoll, folderTimer;
+async function loadDrive() {
+  clearTimeout(drivePoll);
+  try { drive = await api('/api/drive/status'); } catch (e) { drive = { error: e.message }; }
+  renderDrive();
+  if (drive.connecting) drivePoll = setTimeout(loadDrive, 1500);
+  else if (drive.connected && $('#driveUrl').value.trim() && !folder) checkFolder();
+}
+function renderDrive() {
+  const t = $('#acctText'); const show = (id, on) => $(id).classList.toggle('hidden', !on);
+  show('#driveSetup', drive.available && !drive.client);
+  show('#connectBtn', drive.available && drive.client && !drive.connected);
+  show('#disconnectBtn', drive.connected);
+  show('#newClientBtn', drive.client && !drive.connected && !drive.connecting);
+  $('#connectBtn').disabled = !!drive.connecting;
+  $('#browseDrive').disabled = !drive.connected || running;
+  $('#connectBtn').textContent = drive.error && drive.client ? 'Reconnect Google account' : 'Connect Google account';
+  if (drive.available === false) t.innerHTML = '<span class="dot bad"></span>Google Drive support is not installed — run setup again.';
+  else if (!drive.client) t.innerHTML = '<span class="dot"></span>Not set up yet — follow the steps above.';
+  else if (drive.connecting) t.innerHTML = '<span class="dot warn"></span>Waiting for you to sign in to Google in the browser tab that just opened…';
+  else if (drive.connected) t.innerHTML = `<span class="dot ok"></span>Connected as <b>${esc(drive.email || 'your account')}</b>` + (drive.free != null ? ` · ${fmtBytes(drive.free)} free` : '');
+  else t.innerHTML = `<span class="dot ${drive.error ? 'bad' : ''}"></span>` + esc(drive.error || 'Not connected.');
+  updateControls();
+}
+$('#clientFile').onchange = async () => {
+  const f = $('#clientFile').files[0]; $('#clientFile').value = ''; if (!f) return;
+  try { drive = await api('/api/drive/client', { text: await f.text() }); $('#clientMsg').textContent = ''; renderDrive(); }
+  catch (e) { $('#clientMsg').innerHTML = `<span class="badc">${esc(e.message)}</span>`; }
+};
+$('#newClientBtn').onclick = () => { drive.client = false; renderDrive(); };
+$('#connectBtn').onclick = async () => {
+  try { await api('/api/drive/connect', {}); drive.connecting = true; renderDrive(); drivePoll = setTimeout(loadDrive, 1500); }
+  catch (e) { drive.error = e.message; renderDrive(); }
+};
+$('#disconnectBtn').onclick = async () => { drive = await api('/api/drive/disconnect', {}); folder = null; renderFolder(); renderDrive(); };
+$('#driveUrl').addEventListener('input', () => { folder = null; renderFolder(); clearTimeout(folderTimer); folderTimer = setTimeout(checkFolder, 600); });
+async function checkFolder() {
+  const url = $('#driveUrl').value.trim();
+  if (!url) { folder = null; renderFolder(); return; }
+  if (!drive.connected) { renderFolder('Connect your Google account to check this folder.'); return; }
+  renderFolder('Checking folder…');
+  try { folder = await api('/api/drive/folder', { url }); renderFolder(); }
+  catch (e) { folder = null; renderFolder(null, e.message + (e.data && e.data.hint ? ' ' + e.data.hint : '')); }
+}
+function renderFolder(pending, err) {
+  const el = $('#folderInfo');
+  if (err) el.innerHTML = `<span class="badc">✗ ${esc(err)}</span>`;
+  else if (pending) el.innerHTML = `<span class="muted">${esc(pending)}</span>`;
+  else if (folder) el.innerHTML = `<span class="okc">✓ Folder “${esc(folder.name)}” — you can upload here.</span> <a href="https://drive.google.com/drive/folders/${esc(folder.id)}" target="_blank" rel="noopener">Open in Drive</a>`;
+  else el.innerHTML = '';
+  updateControls();
 }
 
 /* ---------- URL list ---------- */
@@ -263,6 +483,7 @@ async function parseNow() {
   try { parsed = await api('/api/parse', { text }); } catch (e) { setMsg(e.message, 'bad'); return; }
   const chips = [`<span class="chip">${parsed.total_found} URL${parsed.total_found === 1 ? '' : 's'} found</span>`,
                  `<span class="chip ok">${parsed.valid} to download</span>`];
+  if (parsed.sections && parsed.sections.length) chips.push(`<span class="chip" title="${esc(parsed.sections.join(', '))}">📁 ${parsed.sections.length} folder${parsed.sections.length === 1 ? '' : 's'}: ${esc(parsed.sections.join(', '))}</span>`);
   if (parsed.invalid.length) chips.push(`<span class="chip bad">${parsed.invalid.length} invalid</span>`);
   if (parsed.duplicates.length) chips.push(`<span class="chip warn">${parsed.duplicates.length} duplicate${parsed.duplicates.length === 1 ? '' : 's'}</span>`);
   $('#parseInfo').innerHTML = chips.join('');
@@ -277,22 +498,31 @@ async function parseNow() {
 /* ---------- start / stop ---------- */
 let running = false;
 function updateControls() {
-  $('#start').disabled = running || !envOk || !parsed || !parsed.valid;
+  let why = '';
+  if (!envOk) why = 'Fix the environment checks first (click the badge at the top).';
+  else if (!parsed || !parsed.valid) why = 'Add at least one YouTube URL in step 1.';
+  else if (dest === 'drive' && !drive.connected) why = 'Connect your Google account in step 2.';
+  else if (dest === 'drive' && !folder) why = 'Paste a Drive folder link you can upload to in step 2.';
+  $('#start').disabled = running || !!why;
+  $('#startHint').textContent = running ? '' : why;
   $('#stop').disabled = !running;
-  for (const id of ['urls', 'output', 'quality', 'codec', 'safe', 'sleep', 'cookies', 'cfb']) $('#' + id).disabled = running;
+  for (const id of ['urls', 'output', 'quality', 'codec', 'safe', 'sleep', 'cookies', 'cfb', 'driveUrl', 'deleteLocal']) $('#' + id).disabled = running;
+  for (const b of $('#destSeg').children) b.disabled = running;
+  $('#browseLocal').disabled = running; $('#browseDrive').disabled = running || !drive.connected;
   drop.classList.toggle('disabled', running);
 }
 $('#start').onclick = async () => {
-  setMsg('Starting…');
+  setMsg('Starting…'); saveSettings();
   try {
     await api('/api/start', {
       text: $('#urls').value, output: $('#output').value, quality: $('#quality').value, codec: $('#codec').value,
       safe_filenames: $('#safe').checked, sleep: parseFloat($('#sleep').value || '0'),
       cookies: $('#cookies').value, cookies_from_browser: $('#cfb').value,
+      destination: dest, drive_folder: $('#driveUrl').value, delete_local: $('#deleteLocal').checked,
     });
-    running = true; updateControls(); setMsg('Downloading…'); poll();
+    running = true; updateControls(); setMsg('Working…'); poll();
   } catch (e) {
-    setMsg(e.message, 'bad');
+    setMsg(e.message + (e.data && e.data.hint ? ' ' + e.data.hint : ''), 'bad');
     if (e.data && e.data.checks) { renderChecks(e.data.checks); $('#envBox').classList.remove('hidden'); }
   }
 };
@@ -302,15 +532,15 @@ $('#stop').onclick = async () => {
 };
 
 /* ---------- live status ---------- */
-let pollTimer, results = [], filter = 'all';
+let pollTimer, results = [], filter = 'all', lastState = null;
 async function poll() {
   clearTimeout(pollTimer);
   let st;
   try { st = await api('/api/status'); }
-  catch (e) { setMsg('Lost connection to ytbulk — is the terminal still running?', 'bad'); pollTimer = setTimeout(poll, 3000); return; }
+  catch (e) { setMsg('Lost connection to ytbulk — is its terminal window still open?', 'bad'); pollTimer = setTimeout(poll, 3000); return; }
   render(st);
   running = st.running; updateControls();
-  if (st.running) pollTimer = setTimeout(poll, 600);
+  if (st.running) pollTimer = setTimeout(poll, 700);
 }
 function setBar(wrapSel, barSel, pct) {
   const wrap = $(wrapSel);
@@ -318,28 +548,49 @@ function setBar(wrapSel, barSel, pct) {
   wrap.classList.remove('indet'); $(barSel).style.width = Math.min(100, pct).toFixed(1) + '%';
 }
 function render(st) {
-  const c = st.counts, done = c.downloaded + c.skipped + c.failed;
+  lastState = st;
+  const c = st.counts, dc = st.drive_counts || {}, done = c.downloaded + c.skipped + c.failed;
+  const isDrive = st.dest === 'drive';
   setBar('#ovBarWrap', '#ovBar', st.total ? done / st.total * 100 : 0);
   $('#ovBarWrap').classList.toggle('green', st.finished && !c.failed && !st.error);
   $('#ovText').textContent = st.total ? `${done} / ${st.total} videos` : '–';
   $('#cOk').textContent = c.downloaded; $('#cSkip').textContent = c.skipped; $('#cBad').textContent = c.failed;
   $('#elapsed').textContent = st.started_at ? 'elapsed ' + fmtTime(st.elapsed) : '';
 
+  $('#upOverall').classList.toggle('hidden', !isDrive); $('#cDrive').classList.toggle('hidden', !isDrive);
+  if (isDrive) {
+    const need = Math.max(0, st.total - c.failed), upDone = dc.uploaded + dc.already + dc.failed + dc.not_uploaded;
+    setBar('#upBarWrap', '#upBar', need ? upDone / need * 100 : 0);
+    $('#upText').textContent = need ? `${upDone} / ${need} videos` : '–';
+    $('#cUp').textContent = dc.uploaded; $('#cAlready').textContent = dc.already; $('#cUpBad').textContent = dc.failed + dc.not_uploaded;
+  }
+
   const cur = st.current;
   $('#cur').classList.toggle('hidden', !cur);
   if (cur) {
     $('#curTitle').textContent = `[${cur.index}/${st.total}] ` + (cur.title || cur.url);
     $('#curTitle').title = cur.title || cur.url;
-    $('#curStage').textContent = cur.stage || '';
+    $('#curStage').textContent = '⬇ ' + (cur.stage || '');
     setBar('#curBarWrap', '#curBar', cur.total ? cur.done / cur.total * 100 : null);
     $('#curBytes').textContent = cur.total ? `${fmtBytes(cur.done)} / ${fmtBytes(cur.total)} (${Math.floor(cur.done / cur.total * 100)}%)` : (cur.done ? fmtBytes(cur.done) : '');
     $('#curSpeed').textContent = cur.speed ? fmtBytes(cur.speed) + '/s' : '';
     $('#curEta').textContent = cur.eta != null ? 'ETA ' + fmtTime(cur.eta) : '';
   }
-  if (st.running) setMsg(st.stopping ? 'Stopping after the current step… (partial data is kept)' : 'Downloading…');
+  const u = st.upload;
+  $('#up').classList.toggle('hidden', !u);
+  if (u) {
+    $('#upTitle').textContent = `[${u.index}/${st.total}] ` + (u.title || '');
+    setBar('#upCurWrap', '#upCurBar', u.total ? u.sent / u.total * 100 : null);
+    $('#upBytes').textContent = `${fmtBytes(u.sent)} / ${fmtBytes(u.total)} (${u.total ? Math.floor(u.sent / u.total * 100) : 0}%)`;
+    $('#upSpeed').textContent = u.speed ? fmtBytes(u.speed) + '/s' : '';
+    $('#upEta').textContent = u.eta != null ? 'ETA ' + fmtTime(u.eta) : '';
+  }
+  if (st.running) setMsg(st.stopping ? 'Stopping after the current step… (partial data is kept)'
+                        : st.phase === 'uploading' ? 'Downloads finished — finishing Drive uploads…' : 'Working…');
   if (st.finished) {
-    const kind = st.error ? 'bad' : (st.summary && (st.summary.failed || st.summary.interrupted || st.summary.not_started) ? 'warn' : 'ok');
-    setMsg(st.error ? 'Error: ' + st.error : st.message, kind);
+    const s = st.summary || {};
+    const problems = s.failed || s.interrupted || s.not_started || s.drive_failed;
+    setMsg(st.error ? 'Error: ' + st.error : st.message + (st.hint ? ' ' + st.hint : ''), st.error ? 'bad' : (problems ? 'warn' : 'ok'));
   }
   renderSummary(st);
   results = st.results; renderRows();
@@ -348,19 +599,24 @@ function renderSummary(st) {
   const box = $('#summary'), s = st.summary;
   if (!st.finished || !s) { box.classList.add('hidden'); return; }
   box.classList.remove('hidden');
-  const names = { text: 'Open report', json: 'Report (JSON)', retry: 'Failed URLs list' };
-  const links = ['text', 'json', 'retry'].filter((k) => (st.reports || {})[k]).map((k) => [k, st.reports[k]]).map(([k, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${names[k] || esc(k)}</a>`).join('');
+  const names = { text: 'Open report', json: 'Report (JSON)', retry: 'Unfinished URLs list' };
+  const links = ['text', 'json', 'retry'].filter((k) => (st.reports || {})[k]).map((k) => `<a href="${esc(st.reports[k])}" target="_blank" rel="noopener">${names[k]}</a>`).join('');
   const unfinished = s.interrupted + s.not_started;
-  box.innerHTML =
+  let html =
     `<div><b>${s.total_urls_found}</b> URLs found · <b>${s.unique_valid}</b> unique · <b>${s.invalid}</b> invalid · <b>${s.duplicates}</b> duplicates</div>` +
-    `<div><b class="okc">${s.downloaded}</b> downloaded · <b>${s.skipped_already_downloaded}</b> already had · <b class="badc">${s.failed}</b> failed` +
-    (unfinished ? ` · <b class="warnc">${unfinished}</b> not finished` : '') + `</div>` +
-    `<div class="small muted">Saved in <span class="path">${esc(st.output_dir)}</span></div>` +
-    `<div class="small">${links}${st.reports && st.reports.retry ? '<button id="loadRetry" class="btn link">Put failed URLs back in the list</button>' : ''}</div>`;
+    `<div><b class="okc">${s.downloaded}</b> downloaded · <b>${s.skipped_already_downloaded}</b> skipped · <b class="badc">${s.failed}</b> failed` +
+    (unfinished ? ` · <b class="warnc">${unfinished}</b> not finished` : '') + `</div>`;
+  if ('drive_uploaded' in s) {
+    html += `<div><b class="drivec">${s.drive_uploaded}</b> uploaded to Drive · <b>${s.drive_already}</b> were already there · <b class="badc">${s.drive_failed}</b> not uploaded</div>`;
+    if (st.drive_folder) html += `<div class="small">Drive folder: <a href="https://drive.google.com/drive/folders/${esc(st.drive_folder.id)}" target="_blank" rel="noopener">${esc(st.drive_folder.name)}</a></div>`;
+  }
+  html += `<div class="small muted">Local folder: <span class="path">${esc(st.output_dir)}</span></div>` +
+    `<div class="small">${links}${st.reports && st.reports.retry ? '<button id="loadRetry" class="btn link">Put unfinished URLs back in the list</button>' : ''}</div>`;
+  box.innerHTML = html;
   const lr = $('#loadRetry');
   if (lr) lr.onclick = async () => {
     const t = await (await fetch(st.reports.retry)).text();
-    $('#urls').value = t; $('#fileInfo').textContent = 'Loaded the failed / unfinished URLs from the last run.';
+    $('#urls').value = t; $('#fileInfo').textContent = 'Loaded the unfinished URLs from the last run.';
     parseNow(); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 }
@@ -369,30 +625,130 @@ $('#tabs').onclick = (e) => {
   filter = b.dataset.f; for (const x of $('#tabs').children) x.classList.toggle('on', x === b);
   renderRows();
 };
+const DL = { downloaded: ['ok', '⬇ Downloaded'], skipped: ['', '↷ Skipped'], failed: ['bad', '✗ Failed'], interrupted: ['warn', '■ Stopped'] };
+const DR = { queued: ['', '☁ Queued'], uploading: ['drive', '☁ Uploading…'], uploaded: ['drive', '☁ On Drive'], already: ['drive', '☁ Already on Drive'],
+             failed: ['bad', '☁ Upload failed'], not_uploaded: ['warn', '☁ Not uploaded'] };
+function isProblem(r) { return r.status === 'failed' || r.status === 'interrupted' || r.drive_status === 'failed' || r.drive_status === 'not_uploaded'; }
 function renderRows() {
-  const rows = results.filter((r) => filter === 'all' || r.status === filter);
+  const rows = results.filter((r) => filter === 'all' || (filter === 'problems' ? isProblem(r)
+    : filter === 'done' ? (r.status === 'downloaded' || r.drive_status === 'uploaded') && !isProblem(r) : r.status === 'skipped'));
   if (!rows.length) { $('#rows').innerHTML = `<tr><td colspan="4" class="muted empty">${results.length ? 'No videos in this view.' : 'Nothing yet.'}</td></tr>`; return; }
-  const B = { downloaded: ['ok', 'Downloaded'], skipped: ['', 'Already had'], failed: ['bad', 'Failed'], interrupted: ['warn', 'Stopped'] };
   $('#rows').innerHTML = rows.map((r) => {
-    const [cls, label] = B[r.status] || ['', r.status];
-    let details;
+    const [c1, l1] = DL[r.status] || ['', r.status];
+    let badges = `<span class="badge ${c1}">${l1}</span>`;
+    if (r.drive_status) { const [c2, l2] = DR[r.drive_status] || ['', r.drive_status]; badges += `<span class="badge ${c2}">${l2}</span>`; }
+    const bits = [];
     if (r.status === 'failed') {
-      details = `<div class="badc small"><b>${esc((r.error_category || '').replace('_', ' '))}</b>: ${esc(r.error)}</div>` + (r.hint ? `<div class="muted small">${esc(r.hint)}</div>` : '');
-    } else if (r.file) {
-      const meta = [r.resolution, r.size_bytes ? fmtBytes(r.size_bytes) : '', r.seconds != null ? fmtTime(r.seconds) : ''].filter(Boolean).join(' · ');
-      details = (meta ? `<div class="small">${esc(meta)}</div>` : '') + `<div class="path">${esc(r.file)}</div>`;
+      bits.push(`<div class="badc small"><b>${esc((r.error_category || '').replace('_', ' '))}</b>: ${esc(r.error)}</div>`);
+      if (r.hint) bits.push(`<div class="muted small">${esc(r.hint)}</div>`);
     } else {
-      details = `<div class="muted small">${esc(r.error || '')}</div>`;
+      const meta = [r.resolution, r.size_bytes ? fmtBytes(r.size_bytes) : '', r.status === 'skipped' ? r.error : ''].filter(Boolean).join(' · ');
+      if (meta) bits.push(`<div class="small">${esc(meta)}</div>`);
     }
-    return `<tr><td class="muted">${r.index}</td><td><span class="badge ${cls}">${label}</span></td>` +
-      `<td><div>${esc(r.title || '—')}</div><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></td><td>${details}</td></tr>`;
+    if (r.drive_link) bits.push(`<div class="small"><a href="${esc(r.drive_link)}" target="_blank" rel="noopener">Open in Drive ↗</a></div>`);
+    if (r.drive_error) bits.push(`<div class="small ${r.drive_status === 'failed' ? 'badc' : 'warnc'}">${esc(r.drive_error)}</div>`);
+    if (r.drive_hint) bits.push(`<div class="muted small">${esc(r.drive_hint)}</div>`);
+    if (r.file) bits.push(`<div class="path">${r.local_deleted ? '<s>' + esc(r.file) + '</s> (local copy deleted)' : esc(r.file)}</div>`);
+    const ftag = r.section ? `<span class="ftag">📁 ${esc(r.section)}</span>` : '';
+    return `<tr><td class="muted">${r.index}</td>` +
+      `<td><div>${ftag}${esc(r.title || '—')}</div><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></td>` +
+      `<td>${badges}</td><td>${bits.join('')}</td></tr>`;
   }).join('');
 }
+
+/* ---------- folder picker (this computer + Google Drive) ---------- */
+const pk = { mode: 'local', path: null, stack: [], items: [], onPick: null };
+function pkOpen(mode, onPick) {
+  pk.mode = mode; pk.onPick = onPick; $('#pkNewRow').classList.add('hidden'); $('#pkNew').classList.remove('hidden');
+  $('#pkTitle').textContent = mode === 'local' ? 'Choose a folder on this computer' : 'Choose a Google Drive folder';
+  const d = $('#picker'); if (!d.open) d.showModal();
+  if (mode === 'local') pkLocal($('#output').value || null);
+  else { pk.stack = [{ id: 'root', name: 'My Drive' }]; pkDrive(); }
+}
+function pkClose() { $('#picker').close(); }
+$('#pkClose').onclick = pkClose; $('#pkCancel').onclick = pkClose;
+$('#picker').addEventListener('click', (e) => { if (e.target.id === 'picker') pkClose(); });   // click on backdrop
+function pkLoading() { $('#pkList').innerHTML = '<div class="pk-empty">Loading…</div>'; }
+function pkError(msg) { $('#pkList').innerHTML = `<div class="pk-empty badc">${esc(msg)}</div>`; }
+function pkRows(items, empty) {
+  $('#pkList').innerHTML = items.length ? items.map((it, i) =>
+    `<button data-i="${i}"><span class="ico">${it.icon || '📁'}</span><span>${esc(it.name)}</span><span class="go">›</span></button>`).join('')
+    : `<div class="pk-empty">${esc(empty)}</div>`;
+}
+$('#pkList').onclick = (e) => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  const it = pk.items[+b.dataset.i];
+  if (pk.mode === 'local') pkLocal(it.path); else { pk.stack.push({ id: it.id, name: it.name }); pkDrive(); }
+};
+// --- this computer
+async function pkLocal(path) {
+  pkLoading();
+  let d; try { d = await api('/api/fs/list', { path }); } catch (e) { pkError(e.message); return; }
+  pk.path = d.path;
+  $('#pkPlaces').innerHTML = d.places.map((p) => `<button data-path="${esc(p.path)}" class="${p.path === d.path ? 'on' : ''}">${esc(p.name)}</button>`).join('');
+  $('#pkCrumbs').innerHTML = d.crumbs.map((c) => `<button data-path="${esc(c.path)}">${esc(c.name)}</button>`).join('<span>›</span>');
+  pk.items = d.dirs.map((n) => ({ name: n, path: d.path.replace(/[\\/]$/, '') + (d.path.includes('\\') ? '\\' : '/') + n }));
+  if (d.error) pkError(d.error); else pkRows(pk.items, 'No sub-folders here. You can select this folder or create a new one.');
+  $('#pkSel').innerHTML = `Selected: <b>${esc(d.path)}</b>` + (d.writable ? '' : ' <span class="badc">(not writable)</span>');
+  $('#pkSelect').disabled = !d.writable;
+}
+// --- Google Drive
+async function pkDrive() {
+  pkLoading();
+  const cur = pk.stack[pk.stack.length - 1], virtual = cur.id === 'shared' || cur.id === 'drives';
+  $('#pkPlaces').innerHTML = [['root', 'My Drive'], ['shared', 'Shared with me'], ['drives', 'Shared drives']]
+    .map(([id, n]) => `<button data-root="${id}" class="${pk.stack[0].id === id ? 'on' : ''}">${n}</button>`).join('');
+  $('#pkCrumbs').innerHTML = pk.stack.map((c, i) => `<button data-depth="${i}">${esc(c.name)}</button>`).join('<span>›</span>');
+  $('#pkSel').innerHTML = virtual ? 'Open a folder to select it.' : `Selected: <b>${esc(pk.stack.map((c) => c.name).join(' / '))}</b>`;
+  $('#pkSelect').disabled = virtual; $('#pkNew').disabled = virtual;
+  let d; try { d = await api('/api/drive/browse', { id: cur.id }); } catch (e) { pkError(e.message + (e.data && e.data.hint ? ' ' + e.data.hint : '')); return; }
+  pk.items = d.items.map((x) => ({ ...x, icon: cur.id === 'drives' ? '🗄️' : '📁' }));
+  pkRows(pk.items, cur.id === 'shared' ? 'No folders shared with you. For a folder shared by link, close this and paste the link instead.'
+                  : cur.id === 'drives' ? 'You are not a member of any shared drives.' : 'No sub-folders here. You can select this folder or create a new one.');
+}
+$('#pkPlaces').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (pk.mode === 'local') pkLocal(b.dataset.path);
+  else { pk.stack = [{ id: b.dataset.root, name: b.textContent }]; pkDrive(); }
+};
+$('#pkCrumbs').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (pk.mode === 'local') pkLocal(b.dataset.path);
+  else { pk.stack = pk.stack.slice(0, +b.dataset.depth + 1); pkDrive(); }
+};
+// --- new folder
+$('#pkNew').onclick = () => { $('#pkNewRow').classList.remove('hidden'); $('#pkNew').classList.add('hidden'); $('#pkNewName').value = ''; $('#pkNewName').focus(); };
+$('#pkNewCancel').onclick = () => { $('#pkNewRow').classList.add('hidden'); $('#pkNew').classList.remove('hidden'); };
+$('#pkNewName').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#pkNewOk').click(); } });
+$('#pkNewOk').onclick = async () => {
+  const name = $('#pkNewName').value.trim(); if (!name) return;
+  try {
+    if (pk.mode === 'local') { await api('/api/fs/mkdir', { path: pk.path, name }); pkLocal(pk.path + (pk.path.includes('\\') ? '\\' : '/') + name); }
+    else { const f = await api('/api/drive/mkdir', { parent: pk.stack[pk.stack.length - 1].id, name }); pk.stack.push({ id: f.id, name: f.name }); pkDrive(); }
+    $('#pkNewCancel').click();
+  } catch (e) { $('#pkSel').innerHTML = `<span class="badc">${esc(e.message)}</span>`; }
+};
+// --- select
+$('#pkSelect').onclick = () => {
+  if (pk.mode === 'local') pk.onPick(pk.path);
+  else { const cur = pk.stack[pk.stack.length - 1]; pk.onPick(cur.id, pk.stack.map((c) => c.name).join(' / ')); }
+  pkClose();
+};
+$('#browseLocal').onclick = () => pkOpen('local', (path) => { $('#output').value = path; saveSettings(); });
+$('#browseDrive').onclick = () => pkOpen('drive', async (id) => {
+  // ask the server for the canonical folder (turns "My Drive" into its real id) and fill the link field
+  renderFolder('Checking folder…');
+  try { folder = await api('/api/drive/folder', { url: id }); $('#driveUrl').value = `https://drive.google.com/drive/folders/${folder.id}`; saveSettings(); renderFolder(); }
+  catch (e) { folder = null; renderFolder(null, e.message + (e.data && e.data.hint ? ' ' + e.data.hint : '')); }
+});
 
 /* ---------- init ---------- */
 (async () => {
   try { await loadDefaults(); } catch (e) { setMsg('Cannot reach the ytbulk server.', 'bad'); }
   await loadEnv();
+  await loadDrive();
+  if (location.hash === '#pick-local') pkOpen('local', () => {});
+  if (location.hash === '#pick-drive' && drive.connected) pkOpen('drive', () => {});
   try {
     const st = await api('/api/status');
     if (st.running || st.finished) { render(st); running = st.running; updateControls(); if (st.running) poll(); }

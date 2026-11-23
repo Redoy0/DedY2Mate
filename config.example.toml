@@ -24,3 +24,7 @@ sleep   = 2.0                 # seconds between videos (be gentle with YouTube)
 # cookies_from_browser = "firefox"
 
 # ffmpeg = "/usr/bin/ffmpeg"  # default: auto-detect
+
+# --- Google Drive destination (see README "Google Drive") ---
+# drive_folder = "https://drive.google.com/drive/folders/XXXXXXXX"
+# delete_local = false        # true = delete each local copy after its upload is verified

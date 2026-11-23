@@ -21,6 +21,7 @@ def build_summary(parsed: ParsedInput, results: list, settings, started: float, 
         "interrupted": interrupted,
         "input_file": str(Path(settings.input).resolve()),
         "output_dir": str(Path(settings.output).resolve()),
+        "drive_folder": getattr(settings, "drive_folder", None),
         "settings": {"quality": settings.quality, "codec": settings.codec, "filename": settings.filename,
                      "safe_filenames": settings.safe_filenames, "cookies_used": bool(
                          settings.cookies or settings.cookies_from_browser)},
@@ -34,6 +35,10 @@ def build_summary(parsed: ParsedInput, results: list, settings, started: float, 
             "failed": len(by("failed")),
             "interrupted": len(by("interrupted")),
             "not_started": len(by("not_started")),
+            **({"drive_uploaded": sum(r.drive_status == "uploaded" for r in results),
+                "drive_already": sum(r.drive_status == "already" for r in results),
+                "drive_failed": sum(r.drive_status in ("failed", "not_uploaded") for r in results)}
+               if getattr(settings, "drive_folder", None) else {}),
         },
         "downloaded": [asdict(r) for r in by("downloaded")],
         "skipped": [asdict(r) for r in by("skipped")],
@@ -53,7 +58,8 @@ def write_reports(summary: dict, output_dir: str | Path) -> dict:
     paths["json"].write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     paths["text"].write_text(_text_report(summary), encoding="utf-8")
 
-    retry = summary["failed"] + summary["interrupted"] + summary["not_started"]
+    retry = summary["failed"] + summary["interrupted"] + summary["not_started"] + [
+        r for r in summary["downloaded"] + summary["skipped"] if r.get("drive_status") in ("failed", "not_uploaded")]
     if retry:
         paths["retry"] = rdir / f"failed-{stamp}.txt"
         paths["retry"].write_text(
@@ -82,6 +88,18 @@ def _text_report(s: dict) -> str:
         f"Interrupted / not started:   {c['interrupted'] + c['not_started']}",
         "",
     ]
+    if "drive_uploaded" in c:
+        out[6:6] = [f"Drive:     {s['drive_folder']}"]
+        out += [f"Uploaded to Drive:           {c['drive_uploaded']}",
+                f"Already on Drive:            {c['drive_already']}",
+                f"Drive upload failed:         {c['drive_failed']}", ""]
+        bad = [r for r in s["downloaded"] + s["skipped"] if r.get("drive_status") in ("failed", "not_uploaded")]
+        if bad:
+            out.append("DRIVE UPLOAD PROBLEMS")
+            for r in bad:
+                out.append(f"  {r['url']}  {r.get('title') or ''}")
+                out.append(f"    {r.get('drive_error') or r.get('drive_status')}")
+            out.append("")
     if s["downloaded"] or s["skipped"]:
         out.append("FILES")
         for r in s["downloaded"] + s["skipped"]:
@@ -124,6 +142,10 @@ def print_summary(console, summary: dict, paths: dict) -> None:
     t.add_row("[red]Failed", f"[red]{c['failed']}")
     if c["interrupted"] or c["not_started"]:
         t.add_row("Interrupted / not started", str(c["interrupted"] + c["not_started"]))
+    if "drive_uploaded" in c:
+        t.add_row("[blue]Uploaded to Drive", f"[blue]{c['drive_uploaded']}")
+        t.add_row("Already on Drive", str(c["drive_already"]))
+        t.add_row("[red]Drive upload failed", f"[red]{c['drive_failed']}")
     console.print(t)
     console.print(f"Videos:  {summary['output_dir']}")
     console.print(f"Report:  {paths['text']}")

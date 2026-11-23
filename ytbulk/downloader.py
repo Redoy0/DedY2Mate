@@ -81,6 +81,7 @@ class VideoResult:
     url: str
     video_id: str
     line: int
+    section: str | None = None
     status: str = "not_started"   # downloaded | skipped | failed | interrupted | not_started
     title: str | None = None
     file: str | None = None
@@ -91,6 +92,12 @@ class VideoResult:
     hint: str | None = None
     attempts: int = 0
     seconds: float | None = None
+    # Google Drive destination only:
+    drive_status: str | None = None   # queued | uploading | uploaded | already | failed | not_uploaded
+    drive_link: str | None = None
+    drive_error: str | None = None
+    drive_hint: str | None = None
+    local_deleted: bool = False
 
 
 class Archive:
@@ -155,6 +162,9 @@ class BulkDownloader:
         self.interrupted = False
         self.fatal: str | None = None
         self.stop_event = threading.Event()   # set() = stop asap (used by the web UI)
+        # Optional hooks (used for the Google Drive destination):
+        self.precheck = None    # fn(entry, result) -> str | None : reason to skip downloading (e.g. on Drive)
+        self.on_result = None   # fn(index, result)        : called for every downloaded/skipped video
 
     def stop(self) -> None:
         self.stop_event.set()
@@ -230,7 +240,8 @@ class BulkDownloader:
     def run(self, entries: list[Entry]) -> list[VideoResult]:
         import yt_dlp
 
-        self.results = results = [VideoResult(url=e.url, video_id=e.video_id, line=e.line) for e in entries]
+        self.results = results = [VideoResult(url=e.url, video_id=e.video_id, line=e.line, section=e.section)
+                                  for e in entries]
         params = self.ydl_params()
         with yt_dlp.YoutubeDL(params) as ydl:
             for i, (entry, res) in enumerate(zip(entries, results), start=1):
@@ -245,11 +256,23 @@ class BulkDownloader:
                         res.status, res.title, res.file = "skipped", rec.get("title"), rec.get("file")
                         res.error = "already downloaded"
                         self.ui.video_done(i, res)
+                        if self.on_result:
+                            self.on_result(i, res)
+                        continue
+                    if self.precheck and (why := self.precheck(entry, res)):
+                        res.status, res.error = "skipped", why
+                        self.ui.video_done(i, res)
                         continue
                     if i > 1 and self.s.sleep and self.stop_event.wait(self.s.sleep):
                         raise KeyboardInterrupt
                     self.ui.video_start(i, entry.url)
+                    # yt-dlp reads params["paths"] on every call, so this routes the file into its folder
+                    ydl.params["paths"]["home"] = str(self.out / entry.section) if entry.section else str(self.out)
                     self._download_one(ydl, entry, res)
+                    if res.status == "downloaded" and self.on_result:
+                        self.ui.video_done(i, res)
+                        self.on_result(i, res)
+                        continue
                 except KeyboardInterrupt:
                     self.interrupted = True
                     if res.status == "not_started" and res.attempts:   # stopped mid-download

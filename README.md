@@ -56,9 +56,9 @@ Check the environment at any time:
 
 This starts a small local server and opens `http://127.0.0.1:8765` in your browser. Keep the terminal open while you use the page, and press Ctrl+C in it to quit.
 
-1. **URL list:** drop your `videos.txt` on the page, click to pick it, or paste the URLs. The page shows how many URLs are valid, duplicated or invalid before you start.
-2. **Settings:** choose the output folder, the max quality and the format. *Web-compatible (H.264)* is the safest choice for website hosting.
-3. **Start download:** shows overall progress plus the current video's title, speed and time remaining.
+1. **URL list:** drop your `videos.txt` on the page, click to pick it, or paste the URLs. The page shows how many URLs are valid, duplicated or invalid before you start. A plain-text line such as `Module 3` starts a new folder.
+2. **Where to save:** choose **This computer** (click **Browse…** to pick a folder) or **Google Drive folder** (click **Browse Drive…**, or paste a folder link; see [Google Drive](#google-drive) below), then the max quality and the format. *Web-compatible (H.264)* is the safest choice for websites and Drive previews.
+3. **Start:** shows download progress and, in Drive mode, upload progress, each with the current video's title, speed and time remaining.
    - **Stop** keeps the partial file. Press Start again later to resume.
    - **Results** lists every video as Downloaded, Failed (with the reason and a hint) or Already had.
    - **Put failed URLs back in the list** loads only the failures, so you can retry them.
@@ -67,6 +67,45 @@ More details:
 - The server listens on `127.0.0.1` only, so it can't be reached from other machines.
 - Each uploaded list is saved to `<output>/_reports/input-<time>.txt`.
 - Options: `--port 9000` picks another port, and `--no-browser` stops the browser from opening automatically.
+
+### Google Drive
+
+The tool can upload every video into a Google Drive folder, keeping module folders such as `Module 3/`, while the next videos are still downloading.
+
+**Why you need your own Google app key.** Google rate-limits each OAuth *app*. Tools that ship one shared, built-in app (rclone's default, for example) split that limit with every other user, so uploads stall for minutes at a time. ytbulk uses **your own free Google Cloud OAuth client**, so the quota is yours alone. Even a folder shared as "anyone can edit" needs a signed-in account to upload.
+
+One-time setup (about 5 minutes; the browser UI shows the same steps with links):
+
+1. Open [Google Cloud → New project](https://console.cloud.google.com/projectcreate), name it `ytbulk`, and click **Create**.
+2. Enable the [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com) for that project.
+3. Open [Google Auth Platform](https://console.cloud.google.com/auth/overview) and click **Get started**. Use app name `ytbulk`, your email, and audience **External**.
+4. Under [Audience](https://console.cloud.google.com/auth/audience), click **Publish app**. Alternatively, add yourself under *Test users*, but then sign-ins expire after 7 days.
+5. Under [Clients](https://console.cloud.google.com/auth/clients), click **Create client**, choose type **Desktop app**, click **Create**, then **Download JSON**.
+6. Load that JSON file into ytbulk:
+   - **Browser UI:** Google Drive folder → *Choose client JSON file…* → **Connect Google account**.
+   - **Terminal:** run once with `--drive-client client_secret.json`. Your browser opens for sign-in.
+
+Then:
+
+```bash
+./ytbulk.sh --ui                         # pick "Google Drive folder", paste the folder link
+./ytbulk.sh --drive-folder "https://drive.google.com/drive/folders/XXXX" --codec h264
+./ytbulk.sh --drive-folder "..." --delete-local    # keep no local copies once verified on Drive
+./ytbulk.sh --drive-logout                         # forget the saved Google sign-in
+```
+
+How Drive limits and failures are handled:
+
+| Situation | Behaviour |
+|---|---|
+| Google says "slow down" (403 rate limit, 429) or a server error (5xx) | Waits progressively longer (exponential back-off) and retries |
+| Network drops mid-file | Resumes from the last byte Google confirmed (resumable upload in 32 MB chunks) |
+| Corrupted upload | The MD5 is compared with the local file; a mismatch is deleted and re-uploaded |
+| Video already in the Drive folder (same name and size, or same `[video id]`) | Skipped, even before downloading, so re-runs and manual uploads never create duplicates |
+| Sign-in expired, no edit permission, Drive full, daily upload cap (about 750 GB per account) | The run stops with a clear message; start again later and it continues where it stopped |
+
+- **Where the sign-in is stored:** the client file and token live in `~/.config/ytbulk/` (Windows: `%APPDATA%\ytbulk\`), readable only by you. They are never written to logs or reports.
+- **Local copies:** videos are first downloaded to the local folder you choose. With *Delete each local copy after it is verified on Drive* or `--delete-local`, a local file is deleted only after Drive reports a matching checksum.
 
 ### Terminal
 
@@ -126,6 +165,9 @@ https://www.youtube.com/shorts/VIDEO_ID_3
 | `-v, --verbose` | `verbose` | off | Debug-level log file |
 | `--check` / `--dry-run` | – | – | Environment check only / list parse only |
 | `--ui` [`--port N`] [`--no-browser`] | – | port `8765` | Browser UI instead of terminal mode |
+| `--drive-folder URL` | `drive_folder` | – | Upload every video to this Google Drive folder (see [Google Drive](#google-drive)) |
+| `--delete-local` | `delete_local` | off | With Drive: delete local copies after a verified upload |
+| `--drive-client FILE` / `--drive-logout` | – | – | Import your OAuth client JSON once / forget the saved sign-in |
 
 Command-line flags take priority over `config.toml`, which takes priority over the built-in defaults.
 
@@ -194,6 +236,7 @@ DedY2Mate/
 │   ├── checks.py       # pre-flight checks (python, yt-dlp, ffmpeg, JS runtime, disk, cookies)
 │   ├── downloader.py   # yt-dlp wrapper: retries, archive, disk check, error classification
 │   ├── ui.py           # rich progress display (terminal)
+│   ├── gdrive.py       # Google Drive: OAuth, resumable uploads, retries, MD5 check, dedupe
 │   ├── web.py          # local browser UI server (--ui), stdlib only
 │   ├── web_ui.html     # the browser UI page
 │   └── report.py       # JSON/text report, retry list, console summary

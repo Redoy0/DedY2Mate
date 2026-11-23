@@ -30,6 +30,8 @@ DEFAULTS = {
     "rate_limit": None,
     "ffmpeg": None,
     "verbose": False,
+    "drive_folder": None,
+    "delete_local": False,
 }
 QUALITIES = ["best", "2160", "1440", "1080", "720", "480", "360"]
 
@@ -56,6 +58,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--sleep", type=float, help="seconds to wait between videos (default: 2)")
     p.add_argument("--rate-limit", help="max download speed, e.g. 5M or 800K")
     p.add_argument("--ffmpeg", help="path to ffmpeg binary (default: auto-detect)")
+    g = p.add_argument_group("Google Drive destination (needs your own Google OAuth client - see README)")
+    g.add_argument("--drive-folder", metavar="URL", help="upload every video to this Drive folder (link or ID)")
+    g.add_argument("--delete-local", action="store_true", default=None,
+                   help="delete each local copy after its upload is verified on Drive")
+    g.add_argument("--drive-client", metavar="JSON", help="import your 'Desktop app' OAuth client file (once)")
+    g.add_argument("--drive-logout", action="store_true", help="forget the saved Google sign-in and exit")
     p.add_argument("-c", "--config", help="TOML config file (default: ./config.toml if present)")
     p.add_argument("--ui", action="store_true", help="open the browser UI instead of downloading from the terminal")
     p.add_argument("--port", type=int, default=8765, help="port for --ui (default: 8765, localhost only)")
@@ -129,6 +137,12 @@ def main(argv=None) -> int:
         from .web import serve
         return serve(s, s.port, open_browser=not s.no_browser)
 
+    if s.drive_logout:
+        from . import gdrive
+        gdrive.disconnect()
+        print("Google sign-in removed.")
+        return 0
+
     if s.check:
         env = run_checks(s.output, s.input if Path(s.input).exists() else None, s.ffmpeg, s.cookies)
         env.print()
@@ -139,7 +153,8 @@ def main(argv=None) -> int:
         return 2
     parsed = parse_url_file(s.input)
     print(f"Input: {s.input} - {parsed.total_found} URL(s) found, {len(parsed.entries)} unique valid, "
-          f"{len(parsed.invalid)} invalid, {len(parsed.duplicates)} duplicate(s)")
+          f"{len(parsed.invalid)} invalid, {len(parsed.duplicates)} duplicate(s)"
+          + (f", {len(parsed.sections)} folder(s): {', '.join(parsed.sections)}" if parsed.sections else ""))
     for n, text in parsed.invalid:
         print(f"  invalid   line {n}: {text}")
     for e in parsed.duplicates:
@@ -147,7 +162,7 @@ def main(argv=None) -> int:
 
     if s.dry_run:
         for e in parsed.entries:
-            print(f"  would get line {e.line}: {e.url}")
+            print(f"  would get line {e.line}: {e.url}" + (f"  -> {e.section}/" if e.section else ""))
         return 0
     if not parsed.entries:
         print("Nothing to download.")
@@ -157,6 +172,10 @@ def main(argv=None) -> int:
     env.print()
     if not env.ok:
         print("Fix the FAIL items above and try again.", file=sys.stderr)
+        return 2
+
+    drive = _drive_setup(s) if s.drive_folder else None
+    if drive == "error":
         return 2
 
     from rich.console import Console
@@ -171,14 +190,25 @@ def main(argv=None) -> int:
                                      len(parsed.entries), out, s.quality, s.codec)
     console = Console()
     started = time.time()
+    worker = None
     with ProgressUI(console, len(parsed.entries)) as ui:
         dl = BulkDownloader(s, env.ffmpeg, env.js_runtimes, ui)
+        if drive:
+            from . import gdrive
+            worker = gdrive.attach(dl, drive[0], drive[1]["id"], ui, bool(s.delete_local))
         try:
             results = dl.run(parsed.entries)
-        except KeyboardInterrupt:      # Ctrl+C between videos
+            if worker:
+                gdrive.wait(worker)
+        except KeyboardInterrupt:      # Ctrl+C between videos / while uploads finish
             dl.interrupted = True
+            dl.stop()
             results = getattr(dl, "results", None) or []
+            if worker:
+                gdrive.wait(worker)
     console.line()
+    if worker and worker.fatal:
+        console.print(f"[bold red]Google Drive: {worker.fatal}[/]" + (f"\n  hint: {worker.fatal.hint}" if worker.fatal.hint else ""))
     if not results:   # interrupted before any result objects existed
         from .downloader import VideoResult
         results = [VideoResult(url=e.url, video_id=e.video_id, line=e.line) for e in parsed.entries]
@@ -196,4 +226,50 @@ def main(argv=None) -> int:
 
     if dl.interrupted:
         return 130
-    return 1 if summary["counts"]["failed"] or dl.fatal else 0
+    c = summary["counts"]
+    return 1 if c["failed"] or c.get("drive_failed") or dl.fatal else 0
+
+
+def _drive_setup(s):
+    """Sign in (first run opens the browser) and validate the target folder. Returns (client, folder) or 'error'."""
+    from . import gdrive
+
+    if not gdrive.libs_available():
+        print("error: Google Drive support is not installed - re-run setup.", file=sys.stderr)
+        return "error"
+    if s.drive_client:
+        try:
+            gdrive.save_client_secret(Path(s.drive_client).expanduser().read_text(encoding="utf-8"))
+            print(f"Saved Google client to {gdrive.client_file()}")
+        except (OSError, ValueError) as e:
+            print(f"error: {e}", file=sys.stderr)
+            return "error"
+    if not gdrive.client_file().is_file():
+        print("error: Google Drive needs your own OAuth client first (one-time, ~5 min).\n"
+              "  See README section 'Google Drive', then run once with:  --drive-client client_secret.json",
+              file=sys.stderr)
+        return "error"
+    fid = gdrive.parse_folder_id(s.drive_folder)
+    if not fid:
+        print(f"error: not a Google Drive folder link: {s.drive_folder}", file=sys.stderr)
+        return "error"
+    creds = gdrive.load_credentials()
+    if not creds:
+        print("Opening Google sign-in in your browser...")
+        try:
+            creds = gdrive.connect()
+        except Exception as e:  # noqa: BLE001
+            print(f"error: Google sign-in did not complete ({type(e).__name__}).", file=sys.stderr)
+            return "error"
+    client = gdrive.DriveClient.from_credentials(creds)
+    try:
+        acct, folder = client.about(), client.folder_info(fid)
+    except gdrive.DriveError as e:
+        print(f"error: {e}" + (f"\n  hint: {e.hint}" if e.hint else ""), file=sys.stderr)
+        return "error"
+    if not folder["can_upload"]:
+        print(f"error: {acct.get('email')} can't add files to the Drive folder '{folder['name']}'.", file=sys.stderr)
+        return "error"
+    print(f"Google Drive: uploading to '{folder['name']}' as {acct.get('email')}"
+          + (" (local copies deleted after verified upload)" if s.delete_local else ""))
+    return client, folder

@@ -20,6 +20,7 @@ class Entry:
     line: int
     raw: str
     video_id: str
+    section: str | None = None      # sub-folder name from the last header line, e.g. "Module 3"
 
     @property
     def url(self) -> str:
@@ -32,7 +33,25 @@ class ParsedInput:
     entries: list[Entry] = field(default_factory=list)        # valid + unique, in file order
     invalid: list[tuple[int, str]] = field(default_factory=list)
     duplicates: list[Entry] = field(default_factory=list)
-    total_found: int = 0                                      # non-empty, non-comment lines
+    total_found: int = 0                                      # URL-like lines (not headers/comments)
+    sections: list[str] = field(default_factory=list)         # header names, in file order
+
+
+_BAD_FS_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def clean_section(text: str) -> str:
+    """Folder-safe name on Linux/macOS/Windows: 'Module  4' -> 'Module 4'."""
+    text = _BAD_FS_CHARS.sub(" ", text.strip().strip("[]").lstrip("#").strip())
+    return " ".join(text.split()).rstrip(". ")[:80]
+
+
+def is_header(line: str) -> bool:
+    """A plain-text line (no URL bits) starts a new folder, e.g. 'Module 3' or '## Module 3'."""
+    low = line.lower()
+    if "://" in low or "youtu" in low or "/" in line or low.startswith("www."):
+        return False
+    return any(ch.isalpha() for ch in line) and bool(clean_section(line))
 
 
 def extract_video_id(text: str) -> str | None:
@@ -70,9 +89,15 @@ def parse_url_text(text: str) -> ParsedInput:
     Anything after the first whitespace on a line is ignored (allows notes)."""
     result = ParsedInput()
     seen: set[str] = set()
+    section: str | None = None
     text = text.lstrip("\ufeff")
     for lineno, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
+        if stripped.startswith("##") or (stripped and not stripped.startswith("#") and is_header(stripped)):
+            section = clean_section(stripped) or None
+            if section and section not in result.sections:
+                result.sections.append(section)
+            continue
         if not stripped or stripped.startswith("#"):
             continue
         result.total_found += 1
@@ -81,7 +106,7 @@ def parse_url_text(text: str) -> ParsedInput:
         if vid is None:
             result.invalid.append((lineno, stripped))
             continue
-        entry = Entry(line=lineno, raw=token, video_id=vid)
+        entry = Entry(line=lineno, raw=token, video_id=vid, section=section)
         if vid in seen:
             result.duplicates.append(entry)
         else:
